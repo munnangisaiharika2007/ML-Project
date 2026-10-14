@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CKD Risk Screening — XGBoost & LightGBM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef3f5;--ink:#12303a;--mute:#5a7580;--panel:#fff;--line:#c9d8de;--acc:#0d6b73;--warn:#c2410c;--ok:#2f7d4f;
+--h:'Bricolage Grotesque','Trebuchet MS',sans-serif;--b:'Public Sans',system-ui,sans-serif;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1a1f;--ink:#dbe9ee;--mute:#8fa8b2;--panel:#15262d;--line:#27404a;--acc:#4fb3bd;--warn:#f08a5d;--ok:#6cc08b}}
+:root[data-theme="dark"]{--bg:#0e1a1f;--ink:#dbe9ee;--mute:#8fa8b2;--panel:#15262d;--line:#27404a;--acc:#4fb3bd;--warn:#f08a5d;--ok:#6cc08b}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.55 var(--b)}
+.wrap{max-width:1120px;margin:0 auto;padding:28px 20px 60px}
+header{padding:28px 0 22px;border-bottom:2px solid var(--ink);margin-bottom:26px}
+h1{font:800 clamp(2rem,5vw,3.6rem)/1.02 var(--h);margin:0 0 12px;letter-spacing:-.02em;max-width:18ch}
+header p{max-width:62ch;color:var(--mute);margin:0}
+.models{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.models span{border:1.5px solid var(--acc);color:var(--acc);padding:3px 12px;border-radius:99px;font-weight:600;font-size:.9rem}
+.notice{background:var(--panel);border-left:4px solid var(--warn);padding:12px 16px;margin-bottom:26px;font-size:.95rem}
+.grid{display:grid;grid-template-columns:1fr 360px;gap:28px;align-items:start}
+@media(max-width:860px){.grid{grid-template-columns:1fr}}
+fieldset{border:1px solid var(--line);background:var(--panel);margin:0 0 18px;padding:16px 18px 18px;border-radius:6px}
+legend{font:600 1.05rem var(--h);padding:0 8px}
+.fields{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}
+label{display:flex;flex-direction:column;font-size:.85rem;color:var(--mute);gap:4px;font-weight:500}
+input,select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:8px 9px;width:100%}
+input:focus-visible,select:focus-visible,button:focus-visible{outline:3px solid var(--acc);outline-offset:1px}
+.hint{font-size:.72rem;opacity:.8}
+.presets{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+button{font:600 .9rem var(--b);border:1.5px solid var(--ink);background:transparent;color:var(--ink);padding:8px 14px;border-radius:4px;cursor:pointer}
+button:hover{background:var(--ink);color:var(--bg)}
+aside{position:sticky;top:calc(12px + env(safe-area-inset-top,0px))}
+@media(max-width:860px){aside{position:static}}
+.res{background:var(--panel);border:2px solid var(--ink);border-radius:6px;padding:20px}
+.res h2{font:800 1.3rem var(--h);margin:0 0 14px}
+.verdict{font:800 2rem/1.1 var(--h);margin:4px 0 4px}
+.verdict.hi{color:var(--warn)}.verdict.lo{color:var(--ok)}
+.bar{margin:14px 0}
+.bar div.t{display:flex;justify-content:space-between;font-weight:600;font-size:.9rem;margin-bottom:4px}
+.track{height:16px;background:var(--bg);border:1px solid var(--line);border-radius:3px;overflow:hidden}
+.fill{height:100%;background:var(--acc);width:0;transition:width .35s}
+.fill.hi{background:var(--warn)}
+.drv{margin:16px 0 0;padding:0;list-style:none;font-size:.9rem}
+.drv li{display:flex;justify-content:space-between;border-top:1px solid var(--line);padding:6px 0}
+.small{font-size:.8rem;color:var(--mute);margin-top:14px}
+section.info{margin-top:44px;max-width:760px}
+section.info h2{font:800 1.6rem var(--h);margin:0 0 10px}
+pre{background:var(--panel);border:1px solid var(--line);padding:14px;overflow-x:auto;font-size:.82rem;line-height:1.5;border-radius:6px}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.9rem;min-width:420px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+@media(prefers-reduced-motion:reduce){.fill{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Chronic kidney disease risk screening</h1>
+  <p>Enter routine clinical and lab values. Two gradient-boosted tree models score the record and the page shows where they agree.</p>
+  <div class="models"><span>XGBoost</span><span>LightGBM</span><span>UCI CKD features</span></div>
+</header>
+
+<div class="notice"><strong>Demo scoring.</strong> The numbers on this page come from a simple rule-based approximation running in your browser, not from trained XGBoost or LightGBM models. Connect the trained models (see the bottom of the page) before drawing any conclusion. This tool is not a medical device and cannot diagnose anything.</div>
+
+<div class="grid">
+<main>
+  <div class="presets">
+    <button type="button" id="pLow">Load typical healthy record</button>
+    <button type="button" id="pHigh">Load typical CKD record</button>
+    <button type="button" id="theme">Switch theme</button>
+  </div>
+  <div id="form"></div>
+</main>
+
+<aside aria-live="polite">
+  <div class="res">
+    <h2>Model output</h2>
+    <div class="verdict" id="verdict">—</div>
+    <div class="small" id="agree" style="margin:0 0 6px"></div>
+    <div class="bar"><div class="t"><span>XGBoost</span><span id="xv">0%</span></div><div class="track"><div class="fill" id="xf"></div></div></div>
+    <div class="bar"><div class="t"><span>LightGBM</span><span id="lv">0%</span></div><div class="track"><div class="fill" id="lf"></div></div></div>
+    <strong style="font-size:.9rem">Largest contributors</strong>
+    <ul class="drv" id="drv"></ul>
+    <p class="small">Probability of the "ckd" class. Threshold for the flag is 50%.</p>
+  </div>
+</aside>
+</div>
+
+</div>
+
+<script>
+const N=[ // key,label,unit,ref,scale,wX,wL,step,default
+['age','Age','years',45,20,.3,.34,1,45],['bp','Blood pressure','mm Hg',80,20,.5,.45,1,80],
+['sg','Specific gravity','',1.02,.01,-1,-1.1,.005,1.02],['al','Albumin','0–5',0,1,.9,.85,1,0],
+['su','Sugar','0–5',0,1,.3,.35,1,0],['bgr','Random glucose','mg/dL',110,60,.5,.55,1,110],
+['bu','Blood urea','mg/dL',30,25,.8,.75,1,30],['sc','Serum creatinine','mg/dL',1,1,1.4,1.5,.1,1],
+['sod','Sodium','mEq/L',140,5,-.4,-.35,1,140],['pot','Potassium','mEq/L',4.3,1,.3,.28,.1,4.3],
+['hemo','Hemoglobin','g/dL',14,2.5,-1.2,-1.1,.1,14],['pcv','Packed cell volume','%',43,7,-.8,-.85,1,43],
+['wbcc','White cell count','cells/µL',7500,3000,.2,.25,100,7500],['rbcc','Red cell count','M/µL',5,1,-.6,-.55,.1,5]];
+const B=[['htn','Hypertension',.9,.85],['dm','Diabetes mellitus',.8,.9],['cad','Coronary artery disease',.4,.45],
+['pe','Pedal edema',.7,.65],['ane','Anemia',.7,.75],['appet','Poor appetite',.6,.55],
+['pc','Abnormal pus cells',.6,.5],['rbc','Abnormal red cells',.4,.45]];
+const G=[['Vitals and history',['age','bp','htn','dm','cad']],['Urine tests',['sg','al','su','pc','rbc']],
+['Blood tests',['bgr','bu','sc','sod','pot','hemo','pcv','wbcc','rbcc']],['Symptoms',['pe','ane','appet']]];
+const $=id=>document.getElementById(id);
+const nm=Object.fromEntries(N.map(r=>[r[0],r])),bn=Object.fromEntries(B.map(r=>[r[0],r]));
+let html='';
+for(const [t,ks] of G){html+=`<fieldset><legend>${t}</legend><div class="fields">`;
+ for(const k of ks){ if(nm[k]){const r=nm[k];html+=`<label>${r[1]}<input type="number" id="${k}" step="${r[7]}" value="${r[8]}"><span class="hint">${r[2]||'&nbsp;'} · typical ${r[3]}</span></label>`}
+ else{html+=`<label>${bn[k][1]}<select id="${k}"><option value="0">No / normal</option><option value="1">Yes / abnormal</option></select></label>`}}
+ html+='</div></fieldset>'}
+$('form').innerHTML=html;
+const cl=(v,a,b)=>Math.max(a,Math.min(b,v));
+function score(){let x=-3,l=-3.1;const d=[];
+ for(const r of N){const v=parseFloat($(r[0]).value);if(isNaN(v))continue;const t=cl((v-r[3])/r[4],-1.5,3);
+  x+=r[5]*t;l+=r[6]*t;d.push([r[1],(r[5]+r[6])/2*t])}
+ for(const r of B){if($(r[0]).value==='1'){x+=r[2];l+=r[3];d.push([r[1],(r[2]+r[3])/2])}}
+ const s=z=>1/(1+Math.exp(-z));return{x:s(x),l:s(l),d}}
+function render(){const {x,l,d}=score(),m=(x+l)/2,hi=m>=.5;
+ $('xv').textContent=(x*100).toFixed(0)+'%';$('lv').textContent=(l*100).toFixed(0)+'%';
+ for(const [id,p] of [['xf',x],['lf',l]]){$(id).style.width=p*100+'%';$(id).className='fill'+(p>=.5?' hi':'')}
+ const v=$('verdict');v.textContent=hi?'Elevated CKD risk':'Low CKD risk';v.className='verdict '+(hi?'hi':'lo');
+ $('agree').textContent=(x>=.5)===(l>=.5)?'Both models agree.':'Models disagree. Treat as uncertain.';
+ const top=d.filter(e=>e[1]>.15).sort((a,b)=>b[1]-a[1]).slice(0,5);
+ $('drv').innerHTML=top.length?top.map(e=>`<li><span>${e[0]}</span><span>+${e[1].toFixed(2)}</span></li>`).join(''):'<li><span>No feature pushes risk up</span><span></span></li>'}
+function load(o){for(const k in o)$(k).value=o[k];render()}
+const low={age:35,bp:70,sg:1.02,al:0,su:0,bgr:100,bu:25,sc:.9,sod:141,pot:4.2,hemo:15,pcv:45,wbcc:7000,rbcc:5.2,htn:0,dm:0,cad:0,pe:0,ane:0,appet:0,pc:0,rbc:0};
+const high={age:62,bp:90,sg:1.01,al:3,su:1,bgr:180,bu:80,sc:4.2,sod:132,pot:5.2,hemo:9.5,pcv:30,wbcc:9800,rbcc:3.4,htn:1,dm:1,cad:0,pe:1,ane:1,appet:1,pc:1,rbc:1};
+$('pLow').onclick=()=>load(low);$('pHigh').onclick=()=>load(high);
+$('form').addEventListener('input',render);
+$('theme').onclick=()=>{const r=document.documentElement,dk=r.dataset.theme==='dark'||(!r.dataset.theme&&matchMedia('(prefers-color-scheme:dark)').matches);r.dataset.theme=dk?'light':'dark'};
+render();
+</script>
+</body>
+</html>
