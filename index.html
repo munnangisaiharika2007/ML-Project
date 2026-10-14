@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>NephroScreen — CKD Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef3f5;--ink:#12303a;--mute:#5a7580;--panel:#fff;--line:#c9d8de;--acc:#0d6b73;--accInk:#fff;--warn:#c2410c;--ok:#2f7d4f;
+--h:'Bricolage Grotesque','Trebuchet MS',sans-serif;--b:'Public Sans',system-ui,sans-serif;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1a1f;--ink:#dbe9ee;--mute:#8fa8b2;--panel:#15262d;--line:#27404a;--acc:#4fb3bd;--accInk:#0e1a1f;--warn:#f08a5d;--ok:#6cc08b}}
+:root[data-theme="dark"]{--bg:#0e1a1f;--ink:#dbe9ee;--mute:#8fa8b2;--panel:#15262d;--line:#27404a;--acc:#4fb3bd;--accInk:#0e1a1f;--warn:#f08a5d;--ok:#6cc08b}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.55 var(--b)}
+[hidden]{display:none!important}
+h1,h2,h3{font-family:var(--h);margin:0;letter-spacing:-.01em}
+input,select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:9px 10px;width:100%}
+button,.btn{font:600 .92rem var(--b);border:1.5px solid var(--ink);background:transparent;color:var(--ink);padding:9px 16px;border-radius:4px;cursor:pointer;text-decoration:none;display:inline-block}
+button:hover,.btn:hover{background:var(--ink);color:var(--bg)}
+button.p{background:var(--acc);border-color:var(--acc);color:var(--accInk)}
+button.p:hover{filter:brightness(1.1);background:var(--acc);color:var(--accInk)}
+:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color:var(--mute);font-weight:500}
+/* login */
+#login{min-height:100vh;display:grid;grid-template-columns:1.1fr 1fr}
+.brand{background:var(--acc);color:var(--accInk);padding:48px;display:flex;flex-direction:column;justify-content:space-between}
+.brand h1{font-size:clamp(2.4rem,5vw,4rem);line-height:1;font-weight:800;max-width:11ch}
+.brand p{max-width:40ch;opacity:.9;margin:16px 0 0}
+.lf{display:flex;align-items:center;padding:32px}
+.lf form{width:100%;max-width:360px;margin:auto;display:grid;gap:16px}
+.lf h2{font-size:1.7rem}
+.err{color:var(--warn);font-size:.9rem;min-height:1.3em;margin:0}
+.demo{font-size:.82rem;color:var(--mute);border-top:1px solid var(--line);padding-top:12px}
+@media(max-width:760px){#login{grid-template-columns:1fr}.brand{padding:28px}}
+/* app */
+nav{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:12px 20px;background:var(--panel);border-bottom:2px solid var(--ink);position:sticky;top:0;z-index:5}
+nav b{font:800 1.2rem var(--h);margin-right:auto}
+nav button{border-color:transparent}
+nav button[aria-current="page"]{border-color:var(--acc);color:var(--acc)}
+.wrap{max-width:1080px;margin:0 auto;padding:28px 20px 60px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin:18px 0 28px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px}
+.stat b{display:block;font:800 2rem/1.1 var(--h)}
+.stat span{color:var(--mute);font-size:.88rem}
+.tw{overflow-x:auto;background:var(--panel);border:1px solid var(--line);border-radius:6px}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:.92rem}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line)}
+th{color:var(--mute);font-weight:600;font-size:.82rem}
+tbody tr[tabindex]{cursor:pointer}
+tbody tr[tabindex]:hover,tbody tr.sel{background:var(--bg)}
+.tag{padding:2px 10px;border-radius:99px;font-size:.8rem;font-weight:600;border:1.5px solid}
+.tag.hi{color:var(--warn)}.tag.lo{color:var(--ok)}
+.tools{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0}
+.tools input{max-width:260px}.tools select{max-width:190px}
+.split{display:grid;grid-template-columns:1fr 300px;gap:20px;align-items:start}
+@media(max-width:860px){.split{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:18px}
+.bar{margin:10px 0}.bar div.t{display:flex;justify-content:space-between;font-size:.88rem;font-weight:600}
+.track{height:12px;background:var(--bg);border:1px solid var(--line);border-radius:3px;overflow:hidden}
+.fill{height:100%;background:var(--acc)}.fill.hi{background:var(--warn)}
+dl{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:12px 0 0;font-size:.9rem}
+dt{color:var(--mute)}dd{margin:0;font-weight:500}
+.av{width:72px;height:72px;border-radius:50%;background:var(--acc);color:var(--accInk);display:grid;place-items:center;font:800 1.7rem var(--h)}
+.fg{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin:18px 0}
+.note{font-size:.8rem;color:var(--mute)}
+button.lnk{border:none;padding:0;text-decoration:underline;color:var(--acc);justify-self:start}button.lnk:hover{background:none;color:var(--acc)}
+@media(max-width:640px){.hm{display:none}table{min-width:0}.wrap{padding:20px 14px 48px}nav{padding:10px 12px}nav b{width:100%}
+.tools input,.tools select{max-width:none;flex:1 1 100%}.brand{padding:24px}.lf{padding:24px 16px}th,td{padding:9px 8px}.stat b{font-size:1.6rem}}
+</style>
+</head>
+<body>
+
+<section id="login">
+  <div class="brand">
+    <b style="font:800 1.2rem var(--h)">NephroScreen</b>
+    <div><h1>Catch kidney disease early.</h1><p>Sign in to review patient records and the risk scores from our XGBoost and LightGBM models.</p></div>
+    <span class="note" style="color:inherit;opacity:.8">Demo build with synthetic data</span>
+  </div>
+  <div class="lf">
+    <form id="lform" novalidate>
+      <h2 id="lt">Sign in</h2>
+      <p id="lmsg" role="status" style="color:var(--ok);margin:0;min-height:1.2em"></p>
+      <label id="ln" hidden>Full name<input id="nm" autocomplete="name"></label>
+      <label>Email<input id="em" type="email" autocomplete="username" placeholder="you@hospital.org"></label>
+      <label>Password<input id="pw" type="password" autocomplete="current-password"></label>
+      <label id="lc" hidden>Confirm password<input id="pw2" type="password" autocomplete="new-password"></label>
+      <p class="err" id="err" role="alert"></p>
+      <button class="p" type="submit" id="lb">Sign in</button>
+      <button type="button" class="lnk" id="sw">New here? Create an account</button>
+      <div class="demo" id="demo">Demo login: <code>doctor@demo.test</code> / <code>demo1234</code>. Sign-in is simulated in the browser and nothing is sent anywhere.</div>
+    </form>
+  </div>
+</section>
+
+<div id="app" hidden>
+  <nav aria-label="Main">
+    <b>NephroScreen</b>
+    <button data-v="home">Home</button><button data-v="add">Add patient</button><button data-v="people">People</button><button data-v="profile">Profile</button>
+    <button id="out">Sign out</button>
+  </nav>
+  <div class="wrap">
+    <section id="v-home">
+      <h2 style="font-size:2rem" id="hi"></h2>
+      <p style="color:var(--mute);margin:6px 0 0">Here is where your patient list stands today.</p>
+      <div class="stats" id="stats"></div>
+      <h3 style="margin-bottom:10px">Latest screenings</h3>
+      <div class="tw"><table><thead><tr><th>Patient</th><th>Date</th><th>Avg. risk</th><th>Result</th></tr></thead><tbody id="recent"></tbody></table></div>
+      <div class="tools"><button class="p" data-v="people">Open patient list</button>
+      <a class="btn" href="screening.html">Run a new screening</a></div>
+    </section>
+
+    <section id="v-people" hidden>
+      <h2 style="font-size:2rem">People</h2>
+      <div class="tools">
+        <input id="q" type="search" placeholder="Search name or ID" aria-label="Search patients">
+        <select id="f" aria-label="Filter by risk"><option value="">All risk levels</option><option value="hi">Elevated risk</option><option value="lo">Low risk</option></select>
+        <select id="s" aria-label="Sort"><option value="id">Sort by ID</option><option value="risk">Sort by risk, high first</option><option value="age">Sort by age</option></select>
+        <button class="p" data-v="add" type="button">Add patient</button>
+      </div>
+      
+      <div class="split">
+        <div class="tw"><table><thead><tr><th>ID</th><th>Name</th><th>Age</th><th class="hm">Sex</th><th class="hm">Creatinine</th><th>Avg. risk</th></tr></thead><tbody id="rows"></tbody></table></div>
+        <div class="card" id="detail"><p class="note">Select a patient to see their record.</p></div>
+      </div>
+      <p class="note" style="margin-top:12px">All patients are synthetic examples. Risk scores are illustrative, not from trained models.</p>
+    </section>
+
+    <section id="v-profile" hidden>
+      <h2 style="font-size:2rem">Profile</h2>
+      <div class="card" style="margin-top:16px;max-width:680px">
+        <div style="display:flex;gap:16px;align-items:center"><div class="av" id="av"></div><div><h3 id="pn"></h3><span class="note" id="pr"></span></div></div>
+        <form id="pf" class="fg" novalidate>
+          <label>Full name<input id="fn"></label>
+          <label>Role<input id="ro"></label>
+          <label>Email<input id="pe" type="email"></label>
+          <label>Hospital<input id="ho"></label>
+          <div style="grid-column:1/-1;display:flex;gap:12px;align-items:center"><button class="p" type="submit">Save changes</button><span class="note" id="ps" role="status"></span></div>
+        </form>
+      </div>
+    </section>
+    <section id="v-add" hidden>
+      <h2 style="font-size:2rem">Add patient</h2>
+      <p style="color:var(--mute);margin:6px 0 0">Enter the patient's details. A risk score is estimated when you save.</p>
+      <div class="card" style="margin-top:16px;max-width:720px"><form id="af" class="fg" novalidate>
+          <label>Full name<input id="a_n"></label>
+          <label>Age<input id="a_a" type="number" min="1" max="120"></label>
+          <label>Sex<select id="a_s"><option>F</option><option>M</option></select></label>
+          <label>Blood pressure (mm Hg)<input id="a_b" type="number" value="80"></label>
+          <label>Creatinine (mg/dL)<input id="a_c" type="number" step="0.1" value="1.0"></label>
+          <label>Hemoglobin (g/dL)<input id="a_h" type="number" step="0.1" value="14"></label>
+          <label>City<input id="a_ci"></label>
+          <label>Phone<input id="a_p" type="tel"></label>
+          <label style="grid-column:1/-1">Conditions<input id="a_d" placeholder="e.g. Hypertension, diabetes"></label>
+          <label style="grid-column:1/-1">Clinical notes<input id="a_t"></label>
+          <div style="grid-column:1/-1;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button class="p" type="submit">Save patient</button><button type="button" id="ac">Cancel</button><span class="note" id="am" role="alert"></span></div>
+        </form></div>
+    </section>
+
+    <section id="v-patient" hidden>
+      <button data-v="people" style="margin-bottom:16px">Back to people</button>
+      <div id="pt"></div>
+    </section>
+  </div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const P=[ // id,name,age,sex,bp,sc,hemo,xgb,lgbm,date
+['P-1001','Anjali Rao',34,'F',70,0.8,13.6,.04,.06,'2026-09-26'],['P-1002','Ravi Kumar',58,'M',90,3.9,9.8,.93,.9,'2026-09-25'],
+['P-1003','Meera Nair',47,'F',80,1.1,12.9,.12,.15,'2026-09-24'],['P-1004','Sanjay Reddy',63,'M',100,5.2,8.7,.98,.97,'2026-09-24'],
+['P-1005','Farah Khan',29,'F',70,0.7,13.1,.03,.03,'2026-09-22'],['P-1006','Vikram Singh',52,'M',90,2.1,11.2,.61,.55,'2026-09-21'],
+['P-1007','Lakshmi Iyer',71,'F',90,2.8,10.4,.74,.8,'2026-09-19'],['P-1008','Arjun Das',41,'M',80,1.0,14.8,.07,.05,'2026-09-18'],
+['P-1009','Priya Menon',55,'F',80,1.3,12.2,.36,.44,'2026-09-16'],['P-1010','Imran Sheikh',66,'M',100,4.4,9.1,.95,.94,'2026-09-15'],
+['P-1011','Kavya Pillai',38,'F',70,0.9,13.9,.05,.08,'2026-09-12'],['P-1012','Mohan Babu',60,'M',90,1.9,11.6,.52,.47,'2026-09-10']];
+const avg=r=>(r[7]+r[8])/2,pct=v=>Math.round(v*100)+'%';
+const tag=v=>v>=.5?'<span class="tag hi">Elevated</span>':'<span class="tag lo">Low</span>';
+let user={name:'Dr. Sunita Sharma',role:'Consulting Nephrologist',email:'doctor@demo.test',hospital:'City General Hospital'};
+let sel=null;
+
+const accts=[{n:'Dr. Sunita Sharma',e:'doctor@demo.test',p:'demo1234'}];let mode='in';
+function setMode(m){mode=m;const up=m==='up';$('ln').hidden=!up;$('lc').hidden=!up;$('demo').hidden=up;$('lt').textContent=up?'Create account':'Sign in';$('lb').textContent=up?'Sign up':'Sign in';$('sw').textContent=up?'Already have an account? Sign in':'New here? Create an account';$('err').textContent='';$('lmsg').textContent=''}
+$('sw').onclick=()=>setMode(mode==='in'?'up':'in');
+$('lform').onsubmit=e=>{e.preventDefault();
+ const em=$('em').value.trim().toLowerCase(),pw=$('pw').value;let a;
+ if(mode==='up'){const n=$('nm').value.trim();
+  if(!n||!/\S+@\S+\.\S+/.test(em)||pw.length<6){$('err').textContent='Enter your name, a valid email and a password of at least 6 characters.';return}
+  if(pw!==$('pw2').value){$('err').textContent='Passwords do not match.';return}
+  if(accts.some(x=>x.e===em)){$('err').textContent='An account with this email already exists. Sign in instead.';return}
+  a={n,e:em,p:pw};accts.push(a)}
+ else{if(!em||!pw){$('err').textContent='Enter your email and password.';return}
+  a=accts.find(x=>x.e===em&&x.p===pw);if(!a){$('err').textContent='Email or password is incorrect. Use the demo login or create an account.';return}}
+ user=a===accts[0]?{name:a.n,role:'Consulting Nephrologist',email:a.e,hospital:'City General Hospital'}:{name:a.n,role:'Clinician',email:a.e,hospital:'Not set'};
+ $('err').textContent='';$('pw').value='';$('pw2').value='';$('login').hidden=true;$('app').hidden=false;render();go('home')};
+$('out').onclick=()=>{$('app').hidden=true;$('login').hidden=false;setMode('in');$('lmsg').textContent='You have been signed out.';$('em').focus()};
+
+$('ac').onclick=()=>{$('af').reset();$('am').textContent='';go('people')};
+$('af').onsubmit=e=>{e.preventDefault();
+ const n=$('a_n').value.trim(),a=+$('a_a').value,b=+$('a_b').value,c=+$('a_c').value,hm=+$('a_h').value;
+ if(!n||!(a>=1&&a<=120)||!(b>0)||!(c>0)||!(hm>0)){$('am').textContent='Enter a name, an age from 1 to 120, and positive blood pressure, creatinine and hemoglobin.';return}
+ const cl2=(v,x,y)=>Math.max(x,Math.min(y,v)),z=-3+1.4*cl2(c-1,-1.5,3)-1.2*cl2((hm-14)/2.5,-1.5,3)+.5*cl2((b-80)/20,-1.5,3)+.3*cl2((a-45)/20,-1.5,3),sg=v=>1/(1+Math.exp(-v));
+ const id='P-'+(1000+P.length+1);
+ P.unshift([id,n,a,$('a_s').value,b,c,hm,sg(z),sg(z+.15),new Date().toISOString().slice(0,10)]);
+ E[id]=[$('a_ci').value.trim()||'Not given',$('a_p').value.trim()||'Not given',$('a_d').value.trim()||'None recorded',$('a_t').value.trim()||'No notes yet.'];
+ $('af').reset();$('am').textContent='';$('q').value='';$('f').value='';render();showPatient(id)};
+function go(v){for(const s of ['home','add','people','profile','patient'])$('v-'+s).hidden=s!==v;
+ const nv=v==='patient'?'people':v;
+ document.querySelectorAll('nav [data-v]').forEach(b=>b.setAttribute('aria-current',b.dataset.v===nv?'page':'false'));scrollTo(0,0)}
+const E={'P-1001':['Hyderabad','+91 90000 10001','None recorded','Routine annual check. No action needed.'],
+'P-1002':['Secunderabad','+91 90000 10002','Hypertension, type 2 diabetes','Referred for nephrology review. Repeat creatinine in 2 weeks.'],
+'P-1003':['Warangal','+91 90000 10003','None recorded','Borderline glucose. Advise diet review.'],
+'P-1004':['Hyderabad','+91 90000 10004','Hypertension, anemia','Advanced findings. Discuss dialysis planning.'],
+'P-1005':['Nizamabad','+91 90000 10005','None recorded','Routine screening. All values normal.'],
+'P-1006':['Karimnagar','+91 90000 10006','Type 2 diabetes','Start ACE inhibitor review. Recheck in 4 weeks.'],
+'P-1007':['Hyderabad','+91 90000 10007','Hypertension, pedal edema','Monitor fluid intake. Follow up monthly.'],
+'P-1008':['Khammam','+91 90000 10008','None recorded','Healthy profile. Next screening in 12 months.'],
+'P-1009':['Secunderabad','+91 90000 10009','Family history of CKD','Models split on risk. Repeat urine albumin test.'],
+'P-1010':['Hyderabad','+91 90000 10010','Hypertension, type 2 diabetes, anemia','High risk on both models. Urgent specialist visit.'],
+'P-1011':['Medak','+91 90000 10011','None recorded','Routine check. No action needed.'],
+'P-1012':['Hyderabad','+91 90000 10012','Hypertension','Borderline. Repeat labs and reassess blood pressure control.']};
+function lab(n,v,u,lo,hi){const s=v>hi?'High':v<lo?'Low':'Normal';
+ return `<tr><td>${n}</td><td>${v} ${u}</td><td>${lo}–${hi}</td><td><span class="tag ${s==='Normal'?'lo':'hi'}">${s}</span></td></tr>`}
+function showPatient(id){const r=P.find(x=>x[0]===id),e=E[id],m=avg(r),M=r[3]==='M';
+ const bar=(n,v)=>`<div class="bar"><div class="t"><span>${n}</span><span>${pct(v)}</span></div><div class="track"><div class="fill ${v>=.5?'hi':''}" style="width:${v*100}%"></div></div></div>`;
+ const hist=[['Jun 2026',m*.7],['Aug 2026',m*.85],[r[9],m]];
+ $('pt').innerHTML=`<div class="card" style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+  <div class="av">${r[1].split(' ').map(w=>w[0]).join('')}</div>
+  <div style="flex:1;min-width:200px"><h2 style="font-size:1.8rem">${r[1]}</h2><span class="note">${r[0]} · ${r[2]} years · ${M?'Male':'Female'} · ${e[0]}</span></div>
+  <div style="text-align:right"><div style="font:800 1.8rem var(--h)">${pct(m)}</div>${tag(m)}</div></div>
+ <div class="split" style="margin-top:18px">
+  <div><h3 style="margin-bottom:10px">Latest results</h3>
+   <div class="tw"><table style="min-width:460px"><thead><tr><th>Test</th><th>Value</th><th>Reference</th><th>Status</th></tr></thead><tbody>
+   ${lab('Serum creatinine',r[5],'mg/dL',0.6,1.3)}${lab('Hemoglobin',r[6],'g/dL',M?13.5:12,M?17.5:15.5)}${lab('Blood pressure (diastolic)',r[4],'mm Hg',60,80)}
+   </tbody></table></div>
+   <h3 style="margin:22px 0 10px">Screening history</h3>
+   <div class="tw"><table style="min-width:360px"><thead><tr><th>Date</th><th>Avg. risk</th><th>Result</th></tr></thead><tbody>
+   ${hist.map(h=>`<tr><td>${h[0]}</td><td>${pct(h[1])}</td><td>${tag(h[1])}</td></tr>`).join('')}</tbody></table></div>
+   <h3 style="margin:22px 0 10px">Clinical notes</h3><div class="card">${e[3]}</div></div>
+  <div><div class="card"><h3>Model scores</h3>${bar('XGBoost',r[7])}${bar('LightGBM',r[8])}
+   <p class="note">${(r[7]>=.5)===(r[8]>=.5)?'Both models agree.':'Models disagree. Treat as uncertain.'}</p></div>
+   <div class="card" style="margin-top:14px"><h3>Details</h3><dl><dt>Phone</dt><dd>${e[1]}</dd><dt>City</dt><dd>${e[0]}</dd><dt>Conditions</dt><dd>${e[2]}</dd><dt>Last screened</dt><dd>${r[9]}</dd></dl></div>
+   <a class="btn p" style="margin-top:14px;width:100%;text-align:center;background:var(--acc);color:var(--accInk);border-color:var(--acc)" href="screening.html">Run new screening</a></div></div>
+ <p class="note" style="margin-top:12px">Synthetic patient. Earlier screening scores are illustrative.</p>`;go('patient')}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-v]');if(b)go(b.dataset.v)});
+
+function render(){
+ $('hi').textContent='Welcome back, '+user.name.split(' ').slice(0,2).join(' ');
+ const hi=P.filter(r=>avg(r)>=.5).length,mc=(P.reduce((a,r)=>a+r[5],0)/P.length).toFixed(1);
+ $('stats').innerHTML=[[P.length,'Patients on record'],[hi,'Flagged as elevated risk'],[mc+' mg/dL','Average creatinine'],[P.filter(r=>r[9]>='2026-09-21').length,'Screenings this week']]
+  .map(s=>`<div class="stat"><b>${s[0]}</b><span>${s[1]}</span></div>`).join('');
+ $('recent').innerHTML=P.slice(0,5).map(r=>`<tr tabindex="0" onclick="showPatient('${r[0]}')" onkeydown="if(event.key==='Enter')showPatient('${r[0]}')"><td>${r[1]}</td><td>${r[9]}</td><td>${pct(avg(r))}</td><td>${tag(avg(r))}</td></tr>`).join('');
+ people();profile()}
+
+function people(){const q=$('q').value.toLowerCase(),f=$('f').value,s=$('s').value;
+ let d=P.filter(r=>(r[0]+r[1]).toLowerCase().includes(q)&&(!f||(f==='hi')===(avg(r)>=.5)));
+ d.sort((a,b)=>s==='risk'?avg(b)-avg(a):s==='age'?a[2]-b[2]:a[0].localeCompare(b[0]));
+ $('rows').innerHTML=d.length?d.map(r=>`<tr tabindex="0" data-id="${r[0]}" class="${sel===r[0]?'sel':''}"><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td class="hm">${r[3]}</td><td class="hm">${r[5]}</td><td>${tag(avg(r))} ${pct(avg(r))}</td></tr>`).join('')
+  :'<tr><td colspan="4">No patients match. Clear the search or filter.</td></tr>'}
+['q','f','s'].forEach(i=>$(i).oninput=people);
+function pick(tr){if(!tr||!tr.dataset.id)return;sel=tr.dataset.id;const r=P.find(x=>x[0]===sel);
+ const bar=(n,v)=>`<div class="bar"><div class="t"><span>${n}</span><span>${pct(v)}</span></div><div class="track"><div class="fill ${v>=.5?'hi':''}" style="width:${v*100}%"></div></div></div>`;
+ $('detail').innerHTML=`<h3>${r[1]}</h3><span class="note">${r[0]}</span>
+  <dl><dt>Age</dt><dd>${r[2]}</dd><dt>Sex</dt><dd>${r[3]}</dd><dt>Blood pressure</dt><dd>${r[4]} mm Hg</dd><dt>Creatinine</dt><dd>${r[5]} mg/dL</dd><dt>Hemoglobin</dt><dd>${r[6]} g/dL</dd><dt>Last screened</dt><dd>${r[9]}</dd></dl>
+  <div style="margin-top:14px">${bar('XGBoost',r[7])}${bar('LightGBM',r[8])}</div>
+  <button class="p" style="margin-top:12px;width:100%" onclick="showPatient('${r[0]}')">Open full profile</button>`;people()}
+$('rows').onclick=e=>pick(e.target.closest('tr'));
+$('rows').onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();pick(e.target.closest('tr'))}};
+
+function profile(){const i=user.name.replace('Dr. ','').split(' ').map(w=>w[0]).join('').slice(0,2);
+ $('av').textContent=i;$('pn').textContent=user.name;$('pr').textContent=user.role+' · '+user.hospital;
+ $('fn').value=user.name;$('ro').value=user.role;$('pe').value=user.email;$('ho').value=user.hospital}
+$('pf').onsubmit=e=>{e.preventDefault();
+ if(!$('fn').value.trim()||!/\S+@\S+\.\S+/.test($('pe').value)){$('ps').textContent='Enter a name and a valid email address.';return}
+ user={name:$('fn').value.trim(),role:$('ro').value.trim(),email:$('pe').value.trim(),hospital:$('ho').value.trim()};
+ $('hi').textContent='Welcome back, '+user.name.split(' ').slice(0,2).join(' ');profile();$('ps').textContent='Changes saved for this session.'};
+</script>
+</body>
+</html>
